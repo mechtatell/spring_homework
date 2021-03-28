@@ -7,8 +7,8 @@ import ru.mechtatell.DAO.Repos.UserRepository;
 import ru.mechtatell.Models.User;
 import ru.mechtatell.Models.UserList;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class UserListDAO {
@@ -22,35 +22,27 @@ public class UserListDAO {
         this.listRepository = listRepository;
     }
 
-    public long add(UserList list) {
-        UserList savedList = listRepository.save(list);
-        return savedList.getId();
+    public UserList createList(UserList list) {
+        return listRepository.save(list);
     }
 
-    public UserList get(long id) {
+    public UserList getList(long id) {
         return listRepository.findById(id).orElse(null);
     }
 
-    public User addUser(User user, long listId) {
-        user.setUserList(get(listId));
+    public User addUser(User user) {
         return userRepository.save(user);
     }
 
-    public boolean delete(long id) {
-        try {
-            listRepository.delete(get(id));
-        } catch (Exception ex) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public void deleteUser(long userId) {
-
+    public void deleteUser(User user) {
+        userRepository.delete(user);
     }
 
     public List<UserList> getAll() {
         return (List<UserList>) listRepository.findAll();
+    }
+
+    public Optional<User> getUser(long id) {
+        return userRepository.findById(id);
     }
 }
