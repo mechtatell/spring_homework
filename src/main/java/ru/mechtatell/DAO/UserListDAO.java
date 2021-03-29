@@ -2,8 +2,10 @@ package ru.mechtatell.DAO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.mechtatell.DAO.Repos.ComparatorRepository;
 import ru.mechtatell.DAO.Repos.ListRepository;
 import ru.mechtatell.DAO.Repos.UserRepository;
+import ru.mechtatell.Models.UserComparator;
 import ru.mechtatell.Models.User;
 import ru.mechtatell.Models.UserList;
 
@@ -15,11 +17,14 @@ public class UserListDAO {
 
     private final UserRepository userRepository;
     private final ListRepository listRepository;
+    private final ComparatorRepository comparatorRepository;
 
     @Autowired
-    public UserListDAO(UserRepository userRepository, ListRepository listRepository) {
+    public UserListDAO(UserRepository userRepository, ListRepository listRepository,
+                       ComparatorRepository comparatorRepository) {
         this.userRepository = userRepository;
         this.listRepository = listRepository;
+        this.comparatorRepository = comparatorRepository;
     }
 
     public UserList createList(UserList list) {
@@ -44,5 +49,13 @@ public class UserListDAO {
 
     public Optional<User> getUser(long id) {
         return userRepository.findById(id);
+    }
+
+    public UserComparator createComparator(UserComparator userComparator) {
+        return comparatorRepository.save(userComparator);
+    }
+
+    public UserComparator findByName(String name) {
+        return comparatorRepository.findByName(name);
     }
 }

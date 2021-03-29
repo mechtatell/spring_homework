@@ -1,21 +1,22 @@
 package ru.mechtatell.Services;
 
+import groovy.lang.GroovyClassLoader;
 import javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.mechtatell.Collections.AdvancedList;
 import ru.mechtatell.Collections.MyCollection;
 import ru.mechtatell.DAO.UserListDAO;
+import ru.mechtatell.Models.UserComparator;
 import ru.mechtatell.Models.User;
 import ru.mechtatell.Models.UserList;
 
 import javax.transaction.Transactional;
-import java.beans.Transient;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Service
 public class UsersListService {
@@ -127,17 +128,20 @@ public class UsersListService {
         return userList;
     }
 
-    public UserList sort(long id) throws NotFoundException {
+    public UserList sort(long id, String comparatorName) throws NotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         UserList userList = findListById(id);
+        UserComparator userComparator = userListDAO.findByName(comparatorName);
+        Comparator<User> comparator;
+
+        if (Objects.isNull(userComparator)) {
+            comparator = (o1, o2) -> (int) (o1.getSum() - o2.getSum());
+        } else {
+            comparator = loadComparator(userComparator.getCode());
+        }
 
         MyCollection<User> myCollection = new MyCollection<>();
         userList.getUsers().forEach(myCollection::add);
-        AdvancedList<User> sortedCollection  = myCollection.sort(new Comparator<User>() {
-            @Override
-            public int compare(User o1, User o2) {
-                return (int) (o1.getSum() - o2.getSum());
-            }
-        });
+        AdvancedList<User> sortedCollection  = myCollection.sort(comparator);
 
         List<User> sortedList = new ArrayList<>();
         for (int i = 0; i < sortedCollection.size(); i++) {
@@ -146,5 +150,21 @@ public class UsersListService {
         userList.setUsers(sortedList);
 
         return userList;
+    }
+
+    public long createComparator(UserComparator userComparator) {
+        UserComparator savedUserComparator = userListDAO.createComparator(userComparator);
+        return savedUserComparator.getId();
+    }
+
+    private Comparator<User> loadComparator(String code) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        GroovyClassLoader loader = new GroovyClassLoader();
+
+        Object o = loader.parseClass(code).getDeclaredConstructor().newInstance();
+        if (!(o instanceof Comparator)) {
+            throw new InstantiationException("Cant read comporator");
+        }
+
+        return (Comparator<User>) o;
     }
 }

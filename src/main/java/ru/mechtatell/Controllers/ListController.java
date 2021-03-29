@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.*;
 import ru.mechtatell.DTO.ListInfoDTO;
 import ru.mechtatell.DTO.UserDTO;
 import ru.mechtatell.DTO.UserListDTO;
+import ru.mechtatell.Models.UserComparator;
 import ru.mechtatell.Models.User;
 import ru.mechtatell.Services.UsersListService;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -94,8 +96,15 @@ public class ListController {
     }
 
     @GetMapping("{id}/sort")
-    public ResponseEntity<UserListDTO> sort(@PathVariable long id) throws NotFoundException {
-        UserListDTO sortedList = UserListDTO.from(service.sort(id));
+    public ResponseEntity<UserListDTO> sort(@PathVariable long id,
+                                            @RequestParam(name = "comparator", required = false) String comparatorName) throws NotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+        UserListDTO sortedList = UserListDTO.from(service.sort(id, comparatorName));
         return ResponseEntity.ok(sortedList);
+    }
+
+    @PostMapping("/comparator")
+    public ResponseEntity<Long> createComparator(@RequestBody UserComparator userComparator) {
+        long comparatorId = service.createComparator(userComparator);
+        return ResponseEntity.ok(comparatorId);
     }
 }
