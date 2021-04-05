@@ -1,11 +1,10 @@
 package ru.mechtatell;
 
-import ru.mechtatell.Models.User;
+import ru.mechtatell.Models.Client;
 
-public class Comparator implements java.util.Comparator<User> {
-
+public class Comparator implements java.util.Comparator<Client> {
     @Override
-    public int compare(User o1, User o2) {
+    public int compare(Client o1, Client o2) {
         return o1.getName().compareTo(o2.getName());
     }
 }

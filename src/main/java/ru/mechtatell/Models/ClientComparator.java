@@ -7,7 +7,7 @@ import javax.persistence.*;
 @Entity
 @Data
 @Table(name = "comparator")
-public class UserComparator {
+public class ClientComparator {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

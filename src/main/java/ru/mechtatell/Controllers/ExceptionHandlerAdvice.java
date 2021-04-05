@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class ExceptionHandlerAdvice {
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity handleException(NotFoundException e) {
+    public ResponseEntity handleException(Exception e) {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(e.getMessage());

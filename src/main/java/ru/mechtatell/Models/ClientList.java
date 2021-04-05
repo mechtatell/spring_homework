@@ -7,7 +7,8 @@ import java.util.List;
 
 @Entity
 @Data
-public class UserList {
+@Table(name = "client_list")
+public class ClientList {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,6 +17,10 @@ public class UserList {
     @Column(name = "name")
     private String name;
 
-    @OneToMany(mappedBy = "userList", cascade = CascadeType.ALL)
-    private List<User> users;
+    @OneToMany(mappedBy = "clientList", cascade = CascadeType.ALL)
+    private List<Client> clients;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }

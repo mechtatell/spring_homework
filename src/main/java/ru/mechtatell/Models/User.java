@@ -3,25 +3,20 @@ package ru.mechtatell.Models;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.List;
 
-@Data
 @Entity
-@Table(name = "client")
+@Table(name = "account")
+@Data
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "name")
-    private String name;
+    @Column(unique = true)
+    private String login;
+    private String password;
 
-    @Column(name = "age")
-    private int age;
-
-    @Column(name = "sum")
-    private double sum;
-
-    @ManyToOne
-    @JoinColumn(name = "list_id")
-    private UserList userList;
+    @OneToMany(mappedBy = "user")
+    private List<ClientList> clientLists;
 }

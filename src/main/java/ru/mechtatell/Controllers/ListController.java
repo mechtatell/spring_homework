@@ -4,14 +4,15 @@ import javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.mechtatell.DTO.ListInfoDTO;
-import ru.mechtatell.DTO.UserDTO;
-import ru.mechtatell.DTO.UserListDTO;
-import ru.mechtatell.Models.UserComparator;
-import ru.mechtatell.Models.User;
-import ru.mechtatell.Services.UsersListService;
+import ru.mechtatell.Models.DTO.ListInfoDTO;
+import ru.mechtatell.Models.DTO.ClientDTO;
+import ru.mechtatell.Models.DTO.ClientListDTO;
+import ru.mechtatell.Models.ClientComparator;
+import ru.mechtatell.Models.Client;
+import ru.mechtatell.Services.ClientListService;
 
 import java.lang.reflect.InvocationTargetException;
+import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,92 +20,88 @@ import java.util.stream.Collectors;
 @RequestMapping("/lists")
 public class ListController {
 
-    private final UsersListService service;
+    private final ClientListService service;
 
     @Autowired
-    public ListController(UsersListService service) {
+    public ListController(ClientListService service) {
         this.service = service;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserListDTO> getList(@PathVariable int id) throws NotFoundException {
-        UserListDTO list = UserListDTO.from(service.findListById(id));
-        return ResponseEntity.ok(list);
-    }
-
-    @PostMapping
-    public ResponseEntity<Long> createList(@RequestBody UserListDTO userList) {
-        long listId = service.createList(userList.toUserList());
-        return ResponseEntity.ok(listId);
-    }
-
-    @PostMapping("{id}/elements")
-    public ResponseEntity<Long> addUser(@RequestBody UserDTO user,
-                                        @PathVariable(name = "id") int listId) throws NotFoundException {
-        long userId = service.addUserToList(user.toUser(), listId);
-        return ResponseEntity.ok(userId);
-    }
-
     @GetMapping
-    public ResponseEntity<List<ListInfoDTO>> getLists() {
-        return ResponseEntity.ok(service.findAllLists().stream()
+    public ResponseEntity<List<ListInfoDTO>> getLists(Principal user) {
+        return ResponseEntity.ok(service.findAllLists(user).stream()
                 .map(ListInfoDTO::from)
                 .collect(Collectors.toList()));
     }
 
-    @DeleteMapping("{id}/elements/{user_id}")
-    public ResponseEntity remove(@PathVariable(name = "id") long listId,
-                                 @PathVariable(name = "user_id") long userId) throws NotFoundException {
-        service.deleteUser(userId, listId);
-        return ResponseEntity.ok().build();
+    @PostMapping
+    public ResponseEntity<Long> createList(Principal user, @RequestBody ClientListDTO ClientList) {
+        long listId = service.createList(ClientList.toClientList(), user);
+        return ResponseEntity.ok(listId);
     }
 
-    @GetMapping("{id}/elements/{user_id}")
-    public ResponseEntity<UserDTO> findUserById(@PathVariable(name = "id") long listId,
-                                                @PathVariable(name = "user_id") long userId) throws NotFoundException {
-        User user = service.findUserById(userId, listId);
-        return ResponseEntity.ok(UserDTO.from(user));
+    @GetMapping("/{id}")
+    public ResponseEntity<ClientListDTO> getList(Principal user, @PathVariable int id) throws NotFoundException {
+        ClientListDTO list = ClientListDTO.from(service.findListById(id, user));
+        return ResponseEntity.ok(list);
+    }
+
+    @PostMapping("{id}/elements")
+    public ResponseEntity<Long> addClient(Principal user, @RequestBody ClientDTO Client, @PathVariable(name = "id") int listId) throws NotFoundException {
+        long ClientId = service.addClientToList(Client.toClient(), listId, user);
+        return ResponseEntity.ok(ClientId);
+    }
+
+    @DeleteMapping("{id}/elements/{Client_id}")
+    public ResponseEntity<Integer> removeClient(Principal user, @PathVariable(name = "id") long listId,
+                                 @PathVariable(name = "Client_id") long ClientId) throws NotFoundException {
+        service.deleteClient(ClientId, listId, user);
+        return ResponseEntity.ok(1);
+    }
+
+    @GetMapping("{id}/elements/{Client_id}")
+    public ResponseEntity<ClientDTO> findClientById(Principal user, @PathVariable(name = "id") long listId, @PathVariable(name = "Client_id") long ClientId) throws NotFoundException {
+        Client client = service.findClientById(ClientId, listId, user);
+        return ResponseEntity.ok(ClientDTO.from(client));
     }
 
     @GetMapping("{id}/size")
-    public ResponseEntity<Integer> getSize(@PathVariable long id) throws NotFoundException {
-        int size = service.getListSize(id);
+    public ResponseEntity<Integer> getListSize(Principal user, @PathVariable long id) throws NotFoundException {
+        int size = service.getListSize(id, user);
         return ResponseEntity.ok(size);
     }
 
     @PutMapping("{id}/elements")
-    public ResponseEntity<Long> addElementsToList(@RequestBody List<UserDTO> usersDTO, @PathVariable long id) {
-        List<User> users = usersDTO.stream()
-                .map(UserDTO::toUser)
+    public ResponseEntity<Long> addElementsToList(Principal user, @RequestBody List<ClientDTO> ClientsDTO, @PathVariable long id) {
+        List<Client> clients = ClientsDTO.stream()
+                .map(ClientDTO::toClient)
                 .collect(Collectors.toList());
 
-        long countOfAdded = service.addUsersToList(users, id);
+        long countOfAdded = service.addClientsToList(clients, id, user);
         return ResponseEntity.ok(countOfAdded);
     }
 
     @GetMapping("{id}/find")
-    public ResponseEntity<Integer> getOccurrencesCount(@PathVariable long id,
-                                                       @RequestParam(name = "element") UserDTO userDTO) throws NotFoundException {
-        int occurrencesCount = service.findOccurrencesCount(userDTO.toUser(), id);
+    public ResponseEntity<Integer> getOccurrencesCount(Principal user, @PathVariable long id, @RequestParam(name = "element") String clientString) throws NotFoundException {
+        int occurrencesCount = service.findOccurrencesCount(clientString, id, user);
         return ResponseEntity.ok(occurrencesCount);
     }
 
     @GetMapping("{id}/shuffle")
-    public ResponseEntity<UserListDTO> shuffle(@PathVariable long id) throws NotFoundException {
-        UserListDTO shuffledList = UserListDTO.from(service.shuffle(id));
+    public ResponseEntity<ClientListDTO> shuffle(Principal user, @PathVariable long id) throws NotFoundException {
+        ClientListDTO shuffledList = ClientListDTO.from(service.shuffle(id, user));
         return ResponseEntity.ok(shuffledList);
     }
 
     @GetMapping("{id}/sort")
-    public ResponseEntity<UserListDTO> sort(@PathVariable long id,
-                                            @RequestParam(name = "comparator", required = false) String comparatorName) throws NotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        UserListDTO sortedList = UserListDTO.from(service.sort(id, comparatorName));
+    public ResponseEntity<ClientListDTO> sort(Principal user, @PathVariable long id, @RequestParam(name = "comparator", required = false) String comparatorName) throws Exception {
+        ClientListDTO sortedList = ClientListDTO.from(service.sort(id, comparatorName, user));
         return ResponseEntity.ok(sortedList);
     }
 
     @PostMapping("/comparator")
-    public ResponseEntity<Long> createComparator(@RequestBody UserComparator userComparator) {
-        long comparatorId = service.createComparator(userComparator);
+    public ResponseEntity<Long> createComparator(@RequestBody ClientComparator clientComparator) {
+        long comparatorId = service.createComparator(clientComparator);
         return ResponseEntity.ok(comparatorId);
     }
 }

@@ -1,4 +1,4 @@
-package ru.mechtatell.Collections;
+package ru.mechtatell.Util.Collections;
 
 import java.util.Optional;
 
