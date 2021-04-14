@@ -11,7 +11,6 @@ import ru.mechtatell.Models.ClientComparator;
 import ru.mechtatell.Models.Client;
 import ru.mechtatell.Services.ClientListService;
 
-import java.lang.reflect.InvocationTargetException;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;

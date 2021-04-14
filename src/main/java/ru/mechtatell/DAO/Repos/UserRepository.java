@@ -1,4 +1,4 @@
-package ru.mechtatell.Repos;
+package ru.mechtatell.DAO.Repos;
 
 import org.springframework.data.repository.CrudRepository;
 import ru.mechtatell.Models.User;

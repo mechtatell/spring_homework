@@ -5,10 +5,10 @@ import javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.BasicJsonParser;
 import org.springframework.stereotype.Service;
-import ru.mechtatell.Repos.ClientRepository;
-import ru.mechtatell.Repos.ComparatorRepository;
-import ru.mechtatell.Repos.ListRepository;
-import ru.mechtatell.Repos.UserRepository;
+import ru.mechtatell.DAO.ListDAOImpl;
+import ru.mechtatell.DAO.Repos.ClientRepository;
+import ru.mechtatell.DAO.Repos.ComparatorRepository;
+import ru.mechtatell.DAO.Repos.UserRepository;
 import ru.mechtatell.Models.User;
 import ru.mechtatell.Util.Collections.AdvancedList;
 import ru.mechtatell.Util.Collections.MyCollection;
@@ -25,37 +25,37 @@ import java.util.stream.Stream;
 public class ClientListService {
     private final UserRepository userRepository;
     private final ClientRepository clientRepository;
-    private final ListRepository listRepository;
+    private final ListDAOImpl listDAO;
     private final ComparatorRepository comparatorRepository;
 
     @Autowired
-    public ClientListService(UserRepository userRepository, ClientRepository clientRepository, ListRepository listRepository, ComparatorRepository comparatorRepository) {
+    public ClientListService(UserRepository userRepository, ClientRepository clientRepository, ListDAOImpl listDAO, ComparatorRepository comparatorRepository) {
         this.userRepository = userRepository;
         this.clientRepository = clientRepository;
-        this.listRepository = listRepository;
+        this.listDAO = listDAO;
         this.comparatorRepository = comparatorRepository;
     }
 
     public long createList(ClientList list, Principal user) {
         User creator = userRepository.findByLogin(user.getName());
         list.setUser(creator);
-        ClientList savedList = listRepository.save(list);
+        ClientList savedList = listDAO.save(list);
         return savedList.getId();
     }
 
     public List<ClientList> findAllLists(Principal user) {
         User creator = userRepository.findByLogin(user.getName());
-        return listRepository.findAllByUser(creator);
+        return listDAO.findAllByUser(creator);
     }
 
     public ClientList findListById(long id, Principal user) throws NotFoundException {
         User creator = userRepository.findByLogin(user.getName());
 
-        if (listRepository.findByIdAndUser(id, creator).isEmpty()) {
+        if (listDAO.findById(id, creator).isEmpty()) {
             throw new NotFoundException("Cant find list with id " + id);
         }
 
-        return listRepository.findByIdAndUser(id, creator).get();
+        return listDAO.findById(id, creator).get();
     }
 
     public int getListSize(long id, Principal user) throws NotFoundException {
@@ -101,7 +101,7 @@ public class ClientListService {
             clientList = new ClientList();
             clientList.setName("New List");
             clientList.setUser(userRepository.findByLogin(user.getName()));
-            listRepository.save(clientList);
+            listDAO.save(clientList);
         }
 
         for (Client client : clients) {

@@ -3,7 +3,7 @@ package ru.mechtatell.Services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.mechtatell.Repos.UserRepository;
+import ru.mechtatell.DAO.Repos.UserRepository;
 import ru.mechtatell.Models.DTO.AuthRequestDTO;
 import ru.mechtatell.Models.User;
 import ru.mechtatell.Util.JWTUtil;
